@@ -6,11 +6,17 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
+using TwilioBlazorWASMTemplate.Shared;
+using TwilioBlazorWASMTemplate.Server.Services;
+using TwilioBlazorWASMTemplate.Server.Models;
+
 
 namespace TwilioBlazorWASMTemplate.Server
 {
     public class Startup
     {
+        readonly string PermittedOrigins = "_permittedOrigins";
+   
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -22,7 +28,26 @@ namespace TwilioBlazorWASMTemplate.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-
+            // allows for cross origin request from the blazor front end
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: PermittedOrigins,
+                    builder =>
+                    {
+                        /// 
+                        // TODO ---- Must replace with host address of main website!! 
+                        ///
+                        builder.WithOrigins("https://localhost:5001")
+                                .AllowAnyMethod()
+                                .AllowAnyHeader();
+                    });
+            });
+            //add twilio information to the config for easy of accesablity across application
+            services.Configure<TwilioAccountDetails>(Configuration.GetSection("TwilioAccountDetails"));
+            
+            //added example service
+            services.AddScoped<IExampleService, ExampleService>();
+           
             services.AddControllersWithViews();
             services.AddRazorPages();
         }
@@ -45,7 +70,7 @@ namespace TwilioBlazorWASMTemplate.Server
             app.UseHttpsRedirection();
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
-
+            app.UseCors(PermittedOrigins);
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>

@@ -1,0 +1,21 @@
+﻿@page "/sample"
+@using TwilioBlazorWASMTemplate.Shared
+@inject HttpClient Http
+
+<h1>Sample Data</h1>
+
+<p> @data.Data</p>
+
+
+
+@code {
+    //make sure it is intilized
+    private SampleData data = new SampleData();
+             
+    protected override async Task OnInitializedAsync()
+    {
+        // fetch data from the api
+        data = await Http.GetFromJsonAsync<SampleData>("Sample");
+    }
+
+}
